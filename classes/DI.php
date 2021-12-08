@@ -11,13 +11,17 @@ trait DI
     {
         $container = new Container();
 
-        $container['plugin.active'] = function ($c) use ($plugin_is_active) {
+        $container['plugin.active'] = function ($c) {
             return \ilPluginAdmin::isPluginActive(\ilEditorAsModePlugin::PLUGINID);
         };
 
         $container['gs'] = function ($c) use ($dic) {
             return $dic->globalScreen();
         };
+        $container['gs.context.data'] = function ($c) {
+            return $c['gs']->tool()->context()->current()->getAdditionalData();
+        };
+
 
         $container['collection.parameter_name'] = function ($c) {
             return \ilCOPageEditGSToolProvider::SHOW_EDITOR;

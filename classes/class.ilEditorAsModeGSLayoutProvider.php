@@ -39,7 +39,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             return false;
         }
 
-        $collection = $dic['gs']->tool()->context()->current()->getAdditionalData();
+        $collection = $dic['gs.context.data'];
         $param = $dic['collection.parameter_name'];
 
         if ($collection->exists($param)) {
@@ -96,7 +96,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             ->withHighPriority();
     }
 
-    protected function getToolsToEntriesClosure() : Closure
+    protected function getToolsToEntriesClosure() : \Closure
     {
         return function (MainBar $mainbar) : MainBar {
             $tools = $mainbar->getToolEntries();
