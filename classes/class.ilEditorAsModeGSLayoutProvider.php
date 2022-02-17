@@ -5,11 +5,17 @@ use ILIAS\GlobalScreen\ScreenContext\Stack\CalledContexts;
 use ILIAS\GlobalScreen\Scope\Layout\Provider\AbstractModificationProvider;
 use ILIAS\GlobalScreen\Scope\Layout\Provider\ModificationProvider;
 use ILIAS\GlobalScreen\Scope\Layout\Provider\PagePart\PagePartProvider;
-use ILIAS\GlobalScreen\Scope\Layout\Factory\MainBarModification;
+
 use ILIAS\GlobalScreen\Scope\Layout\Factory\PageBuilderModification;
-use ILIAS\UI\Component\MainControls\MainBar;
-use ILIAS\UI\Component\MainControls\ModeInfo;
 use ILIAS\UI\Component\Layout\Page\Page;
+use ILIAS\GlobalScreen\Scope\Layout\Factory\MainBarModification;
+use ILIAS\UI\Component\MainControls\MainBar;
+use ILIAS\GlobalScreen\Scope\Layout\Factory\MetaBarModification;
+use ILIAS\UI\Component\MainControls\MetaBar;
+use ILIAS\GlobalScreen\Scope\Layout\Factory\BreadCrumbsModification;
+use ILIAS\UI\Component\Breadcrumbs\Breadcrumbs;
+
+use ILIAS\UI\Component\MainControls\ModeInfo;
 
 /**
  * Class ilEditorAsModeGSLayoutProvider
@@ -66,9 +72,47 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
         }
 
         $dic = $this->getPluginDIC();
-
         return $dic['gs']->layout()->factory()->mainbar()
             ->withModification($this->getToolsToEntriesClosure())
+            ->withHighPriority();
+    }
+
+    /**
+     * @inheritDoc
+     */
+    public function getMetaBarModification(CalledContexts $calledContexts) : ?MetaBarModification
+    {
+        if (!$this->isInEditorMode()) {
+            return null;
+        }
+        
+        $dic = $this->getPluginDIC();
+        return $dic['gs']->layout()->factory()->metabar()
+            ->withModification(
+                function (MetaBar $metabar) : ?Metabar {
+
+                    //TODO: preserve 'help'
+                
+                    $metabar = $metabar->withClearedEntries();
+                    return $metabar;
+                }
+            )
+            ->withHighPriority();
+    }
+    
+    public function getBreadCrumbsModification(CalledContexts $screen_context_stack) : ?BreadCrumbsModification
+    {
+        if (!$this->isInEditorMode()) {
+            return null;
+        }
+
+        $dic = $this->getPluginDIC();
+        return $dic['gs']->layout()->factory()->breadcrumbs()
+            ->withModification(
+                function (Breadcrumbs $current) : ?Breadcrumbs {
+                    return null;
+                }
+            )
             ->withHighPriority();
     }
 
@@ -103,8 +147,11 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             $mainbar = $mainbar->withClearedEntries();
             foreach ($tools as $key => $entry) {
                 $mainbar = $mainbar->withAdditionalEntry($key, $entry);
+                $active = $key;
             }
-            return $mainbar;
+            //activate first
+            $active = array_shift(array_keys($tools));
+            return $mainbar->withActive($active);
         };
     }
 
@@ -112,7 +159,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
     {
         $dic = $this->getPluginDIC();
 
-        $label = $dic['lng']->txt('cont_finish_editing');
+        $label = $dic['lng']->txt('viewcontrol_editing');
         $cmd = 'releasePageLock';
         //$cmd = 'finishEditing';
 
