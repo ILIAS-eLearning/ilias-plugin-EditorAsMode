@@ -11,8 +11,18 @@ trait DI
     {
         $container = new Container();
 
-        $container['plugin.active'] = function ($c) {
-            return \ilPluginAdmin::isPluginActive(\ilEditorAsModePlugin::PLUGINID);
+        $container['plugin.active'] = function ($c) use ($dic) {   
+            $id = \ilEditorAsModePlugin::PLUGIN_ID;
+            
+            if($dic->offsetExists("component.repository")) {
+                //ilias 8 
+                $component_repository = $dic["component.repository"];
+                return $component_repository->hasPluginId($id)
+                    && $component_repository->getPluginById($id)->isActive();
+            } else {
+                // ilias 7
+                return \ilPluginAdmin::isPluginActive($id);
+            }
         };
 
         $container['gs'] = function ($c) use ($dic) {

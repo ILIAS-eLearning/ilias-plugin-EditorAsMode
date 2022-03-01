@@ -100,6 +100,9 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             ->withHighPriority();
     }
     
+    /**
+     * @inheritDoc
+     */
     public function getBreadCrumbsModification(CalledContexts $screen_context_stack) : ?BreadCrumbsModification
     {
         if (!$this->isInEditorMode()) {
@@ -134,7 +137,9 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             ->withModification(
                 function (PagePartProvider $parts) use ($page_builder, $modeinfo) : Page {
                     $page = $page_builder->build($parts);
-                    return $page->withModeInfo($modeinfo);
+                    return $page
+                        ->withNoFooter()
+                        ->withModeInfo($modeinfo);
                 }
             )
             ->withHighPriority();
@@ -149,8 +154,9 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
                 $mainbar = $mainbar->withAdditionalEntry($key, $entry);
                 $active = $key;
             }
-            //activate first
-            $active = array_shift(array_keys($tools));
+            //activate first entry
+            $tool_keys = array_keys($tools);
+            $active = array_shift($tool_keys);
             return $mainbar->withActive($active);
         };
     }
@@ -158,17 +164,21 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
     protected function getEditorModeInfo() : ModeInfo
     {
         $dic = $this->getPluginDIC();
-
-        $label = $dic['lng']->txt('viewcontrol_editing');
-        $cmd = 'releasePageLock';
-        //$cmd = 'finishEditing';
-
+        $lng = $dic['lng'];
         $ctrl = $dic['ctrl'];
-        $exitlink = $dic['data.factory']->uri(
-            $dic['ilias.baseurl'] 
+        $il_base_url = $dic['ilias.baseurl'];
+        $ui_factory = $dic['ui.factory'];
+        $data_factory = $dic['data.factory'];
+
+        $label = $lng->txt('ui_uihk_editormodeui_viewcontrol_editing');
+        $cmd = 'releasePageLock';
+        $cmd = 'finishEditing';
+
+        $exitlink = $data_factory->uri(
+            $il_base_url
             . '/' 
             . $ctrl->getLinkTargetByClass($ctrl->getCurrentClassPath(), $cmd)
         );
-        return $dic['ui.factory']->mainControls()->modeInfo($label, $exitlink);
+        return $ui_factory->mainControls()->modeInfo($label, $exitlink);
     }
 }

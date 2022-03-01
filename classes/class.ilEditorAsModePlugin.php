@@ -5,14 +5,19 @@
  */
 class ilEditorAsModePlugin extends ilUserInterfaceHookPlugin
 {
-    const PLUGINID = 'editormodeui';
-    const PLUGINNAME = 'EditorAsMode';
+    /*
+    const COMPONENT_TYPE = 'Services';
+    const COMPONENT_NAME = 'UIComponent';
+    const SLOT_ID = 'uihk';
+    */
+    const PLUGIN_ID = 'editormodeui';
+    const PLUGIN_NAME = 'EditorAsMode';
 
     /**
      * @inheritDoc
      */
-    public function getPluginName()
+    public function getPluginName() : string
     {
-        return self::PLUGINNAME;
+        return self::PLUGIN_NAME;
     }
 }
