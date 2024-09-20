@@ -1,9 +1,9 @@
 <?php
 $id = "editormodeui";
-$version = "0.0.1";
+$version = "0.0.2";
 
-$ilias_min_version = "7.4";
-$ilias_max_version = "8.0";
+$ilias_min_version = "10.0";
+$ilias_max_version = "10.9";
 
 $responsible = "CaT Concepts and Training GmbH, Nils Haagen";
 $responsible_mail = "nils.haagen@concepts-and-training.de";

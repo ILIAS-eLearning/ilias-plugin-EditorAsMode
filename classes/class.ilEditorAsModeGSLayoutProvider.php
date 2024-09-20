@@ -29,7 +29,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
      */
     protected $plugin_dic = null;
 
-    protected function getPluginDIC() : \Pimple\Container
+    protected function getLocalDIC() : \Pimple\Container
     {
         if(! $this->plugin_dic) {
             $this->plugin_dic = $this->buildDic($this->dic);
@@ -39,12 +39,11 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
 
     protected function isInEditorMode() : bool
     {
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
 
         if(! $dic['plugin.active']){
             return false;
         }
-
         $collection = $dic['gs.context.data'];
         $param = $dic['collection.parameter_name'];
 
@@ -59,6 +58,10 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
      */
     public function isInterestedInContexts() : ContextCollection
     {
+
+        if(!isset($this->context_collection)) {
+            $this->context_collection =  $this->globalScreen()->tool()->context()->collection();
+        }
         return $this->context_collection->main()->repository();
     }
 
@@ -71,7 +74,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             return null;
         }
 
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
         return $dic['gs']->layout()->factory()->mainbar()
             ->withModification($this->getToolsToEntriesClosure())
             ->withHighPriority();
@@ -86,13 +89,11 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             return null;
         }
         
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
         return $dic['gs']->layout()->factory()->metabar()
             ->withModification(
-                function (MetaBar $metabar) : ?Metabar {
-
+                function (?MetaBar $metabar) : ?Metabar {
                     //TODO: preserve 'help'
-                
                     $metabar = $metabar->withClearedEntries();
                     return $metabar;
                 }
@@ -109,10 +110,10 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             return null;
         }
 
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
         return $dic['gs']->layout()->factory()->breadcrumbs()
             ->withModification(
-                function (Breadcrumbs $current) : ?Breadcrumbs {
+                function (?Breadcrumbs $current) : ?Breadcrumbs {
                     return null;
                 }
             )
@@ -128,10 +129,15 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
             return null;
         }
 
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
 
         $page_builder = $dic['pagebuilder'];
         $modeinfo = $this->getEditorModeInfo();
+        
+        if(!isset($this->factory)) {
+            $this->factory = $this->globalScreen()->layout()->factory();
+        } 
+        
 
         return $this->factory->page()
             ->withModification(
@@ -147,7 +153,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
 
     protected function getToolsToEntriesClosure() : \Closure
     {
-        return function (MainBar $mainbar) : MainBar {
+        return function (?MainBar $mainbar) : ?MainBar {
             $tools = $mainbar->getToolEntries();
             $mainbar = $mainbar->withClearedEntries();
             foreach ($tools as $key => $entry) {
@@ -163,7 +169,7 @@ class ilEditorAsModeGSLayoutProvider extends AbstractModificationProvider implem
 
     protected function getEditorModeInfo() : ModeInfo
     {
-        $dic = $this->getPluginDIC();
+        $dic = $this->getLocalDIC();
         $lng = $dic['lng'];
         $ctrl = $dic['ctrl'];
         $il_base_url = $dic['ilias.baseurl'];
