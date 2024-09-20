@@ -3,31 +3,35 @@
 namespace CaT\Plugins\EditorAsMode;
 
 use PHPUnit\Framework\TestCase;
-use \Pimple\Container;
+//use \Pimple\Container;
+use ILIAS\DI\Container;
 use ILIAS\UI\Implementation\Component as UIComponent;
-
-class TestingProvider extends \ilEditorAsModeGSLayoutProvider
-{
-    public function __construct(Container $dic)
-    {
-        $this->dic = $dic;
-    }
-    protected function getPluginDIC() : Container
-    {
-        return $this->dic;
-    }
-    public function pubIsInEditorMode() : bool
-    {
-        return $this->isInEditorMode();
-    }
-    public function pubGetToolsToEntriesClosure() : \Closure
-    {
-        return $this->getToolsToEntriesClosure();
-    }
-}
 
 class ProviderTest extends TestCase
 {
+    public function getTestingProvider(Container $dic): \ilEditorAsModeGSLayoutProvider
+    {
+        return new class($dic) extends \ilEditorAsModeGSLayoutProvider {
+            public function __construct(Container $dic)
+            {
+                $this->plugin_dic = $dic;
+            }
+            protected function getPluginDIC() : Container
+            {
+                return $this->plugin_dic;
+            }
+            public function pubIsInEditorMode() : bool
+            {
+                return $this->isInEditorMode();
+            }
+            public function pubGetToolsToEntriesClosure() : \Closure
+            {
+                return $this->getToolsToEntriesClosure();
+            }
+        };
+    }
+    
+ 
     public function testModeActivationPlugNotActive()
     {
         $c = new Container();
@@ -41,7 +45,7 @@ class ProviderTest extends TestCase
                 }
             };
         };
-        $p = new TestingProvider($c);
+        $p = $this->getTestingProvider($c);
         $this->assertFalse($p->pubIsInEditorMode());
     }
 
@@ -65,7 +69,7 @@ class ProviderTest extends TestCase
 
             };
         };
-        $p = new TestingProvider($c);
+        $p = $this->getTestingProvider($c);
         $this->assertFalse($p->pubIsInEditorMode());
     }
 
@@ -88,13 +92,13 @@ class ProviderTest extends TestCase
                 }
             };
         };
-        $p = new TestingProvider($c);
+        $p = $this->getTestingProvider($c);
         $this->assertTrue($p->pubIsInEditorMode());
     }
 
     public function testToolsToEntries()
     {
-        $p = new TestingProvider((new Container()));
+        $p = $this->getTestingProvider((new Container()));
         $c = $p->pubGetToolsToEntriesClosure();
 
         $sig_gen = new UIComponent\SignalGenerator();
